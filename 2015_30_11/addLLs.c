@@ -6,32 +6,36 @@ struct node {
 	struct node *next;
 	};
 
-struct testcases{
+
+struct testcases
+	{
 
 	int inpSeq1[20];
 	int inpSeq2[20];
 	int outSeq[20];
-	}tests[10] = {
-		{ { -3,-5,-9}, { -3,-5,-9 }, {-6,-10,-18 } },
-		{ { 0,0,0,0}, {-2,-3,-4,-5 }, {-2,-3,-4,-5 } },
-		{ { -1,2,-3,5,6}, {-2,-3,3,-2,-4 }, {-3,-1,0,3,2 } },
-		{ { 1,1,1,1,1}, {9,9,9,9,9 }, {10,10,10,10,10 } },
-		{ { 1,2,3,4,5}, {0 }, {1,2,3,4,5} },
-		{ { 0}, {1,2,3,4,6 }, {1,2,3,4,6 } },
-		{ { 4, 5, 6 }, { 3, 4, 5, 6, 7, 8 }, { 7,9,11,6,7,8} },
-		{ { 1, 2, 3, 4, 5 }, { 5, 4, 3, 2, 1 }, { 6,6,6,6,6} }
-	};
+
+	}tests[10] = { 
+		{ { 1, 2, 3 }, { NULL}, { 1, 2, 3 } },
+		{ NULL, NULL,NULL},
+		{ { 3,3,3}, {4,4,4 }, {7,7,7 } },
+		{ { 1}, {1 }, {2 } },
+		{ { 3,3,6}, {8,8,5,2 }, { 9,1,8,8} },
+		{ { 8,9,9,9}, {1,1,2 }, { 9,1,1,1} },
+		{ { 9,9,9}, {1,1,4 }, { 1,1,1,3} },
+		{ { 3, 4, 5 }, { 7, 7, 2 }, { 1,1,1,7} },
+		{ { 1, 2, 3, 4, 5 }, { 5, 4, 3, 2, 1 }, { 6, 6, 6, 6, 6 } } };
 
 void test(int num_test);
 struct node * createNode(int num);
 struct node * createList(int num);
 bool compare(struct node *result, int* num);
 struct node* addLL(struct node* head1, struct node* head2);
-
+int getLength(struct node* head);
+struct node* addUtil(struct node* list1, struct node* list2, int* carry, int state);
 
 int main(){
 
-	int num_test = 8;
+	int num_test = 9;
 
 	test(num_test);
 
@@ -62,25 +66,69 @@ void test(int num_test){
 		}
 	}
 
-
-/*Add function*/
 struct node* addLL(struct node* head1, struct node* head2){
-	
-	struct node* res;
 
-	if (head1 == NULL)
-		return head2;
-	if (head2 == NULL)
-		return head1;
+	int diff = getLength(head1) - getLength(head2);
 
-	res = head1;
+	int carry = 0;
 
-	res->num = head1->num + head2->num;
+	struct node* result = addUtil(head1, head2, &carry, diff);
 
-	res->next = addLL(head1->next, head2->next);
+	if (carry > 0){
+		struct node* carNode = createNode(carry);
 
-	return res;
+		carNode->next = result;
+
+		result = carNode;
+		}
+
+	return result;
 	}
+
+struct node* addUtil(struct node* list1, struct node* list2, int* carry, int diff){
+
+	if (list1 == NULL && list2 == NULL)
+		return list1;
+
+	struct node* result = createNode(0);
+
+	if (diff > 0){
+		result->next = addUtil(list1->next, list2, carry, diff - 1);
+
+		result->num = *carry + list1->num;
+		}
+	else if (diff < 0){
+
+		result->next = addUtil(list1, list2->next, carry, diff + 1);
+
+		result->num = *carry + list2->num;
+		}
+	else{
+
+		result->next = addUtil(list1->next, list2->next, carry, 0);
+
+		result->num = *carry + (list1->num) + (list2->num);
+		}
+
+	*carry = result->num / 10;
+	result->num %= 10;
+
+	return result;
+	}
+
+int getLength(struct node* head){
+
+	int i = 0;
+
+	while (head != NULL){
+		i++;
+		head = head->next;
+		}
+
+	return i;
+
+	}
+
 
 /* Utility functions - creating List and nodes*/
 struct node * createNode(int num) {
